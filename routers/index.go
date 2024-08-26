@@ -16,4 +16,5 @@ func RegisterRoutes(route *gin.Engine) {
 
 	// Add All route
 	routers.ExamplesRoutes(route)
+	routers.RepositoryRoutes(route)
 }
