@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"main/infra/logger"
@@ -35,30 +34,49 @@ func (ctrl *RepositoryController) CommitProblemSolution(c *gin.Context) {
 		return
 	}
 
+	ownerName := commitForm.User.Owner
+	repoName := commitForm.User.Repo
+
 	gh := githubutils.CreateNewGithubClientWithUserToken(commitForm.AccessToken)
 
-	// Get branch reference to the user's repository
-	ref, _, err := gh.Git.GetRef(c, commitForm.User.Owner, commitForm.User.Repo, "heads/main")
+	userRepoMainBranchReference, _, err := gh.Git.GetRef(c, ownerName, repoName, "heads/main")
 	if err != nil {
-		logger.Fatalf("Failed to get branch ref: %v", err)
+		logger.Errorf("Failed to get branch ref: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Failed to get reference for repo's main branch: %s", err.Error()),
+		})
 		return
 	}
 
-	var basePath string = commitForm.Solution.ProblemName
+	basePath := commitForm.Solution.ProblemName
+
+	commitRefPointsTo := userRepoMainBranchReference.Object
+
+	latestCommit, _, err := gh.Repositories.GetCommit(c, ownerName, repoName, *commitRefPointsTo.SHA, nil)
+	if err != nil {
+		logger.Errorf("Failed to get parent commit: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Failed to get parent commit for %s: %s", *userRepoMainBranchReference.Ref, err.Error()),
+		})
+		return
+	}
 
 	entries := []*github.TreeEntry{
+		// Description
 		{
 			Path:    github.String(basePath + "/" + commitForm.Solution.ProblemName + ".md"),
 			Type:    github.String("blob"),
-			Content: github.String(commitForm.Solution.Code),
+			Content: github.String(commitForm.Solution.Description),
 			Mode:    github.String("100644"),
 		},
+		// Notes
 		{
 			Path:    github.String(basePath + "/" + "NOTES.md"),
 			Type:    github.String("blob"),
 			Content: github.String(commitForm.Solution.Notes),
 			Mode:    github.String("100644"),
 		},
+		// Solution Code
 		{
 			Path:    github.String(basePath + "/" + commitForm.Solution.ProblemName + "." + commitForm.Solution.Language),
 			Type:    github.String("blob"),
@@ -67,55 +85,37 @@ func (ctrl *RepositoryController) CommitProblemSolution(c *gin.Context) {
 		},
 	}
 
-	// Create a new commit with the tree
-	latestCommit, _, err := gh.Repositories.GetCommit(c, commitForm.User.Owner, commitForm.User.Repo, *ref.Object.SHA, nil)
+	commitTree, _, err := gh.Git.CreateTree(c, ownerName, repoName, *latestCommit.Commit.Tree.SHA, entries)
 	if err != nil {
-		logger.Fatalf("Failed to get parent commit: %v", err)
+		logger.Errorf("Failed to create tree: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
-	}
-
-	if latestCommit == nil || latestCommit.SHA == nil {
-		logger.Fatalf("Latest commit tree or its SHA is nil")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Latest commit tree or its SHA is nil",
-		})
-		return
-	}
-
-	tree, _, err := gh.Git.CreateTree(c, commitForm.User.Owner, commitForm.User.Repo, *latestCommit.Commit.Tree.SHA, entries)
-	if err != nil {
-		logger.Fatalf("Failed to create tree: %v", err)
-		return
-	}
-
-	if tree == nil || tree.SHA == nil {
-		logger.Fatalf("Latest commit tree or its SHA is nil")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Latest commit tree or its SHA is nil",
+			"error": fmt.Sprintf("Failed to create tree from commit %s: %s", latestCommit.Commit, err.Error()),
 		})
 		return
 	}
 
 	commit := &github.Commit{
 		Message: github.String(githubutils.CreateCommitMessage(commitForm.Solution.ProblemName)),
-		Tree:    tree,
+		Tree:    commitTree,
 		Parents: []*github.Commit{{SHA: latestCommit.SHA}},
 	}
 
-	newCommit, _, err := gh.Git.CreateCommit(c, commitForm.User.Owner, commitForm.User.Repo, commit, nil)
+	newCommit, _, err := gh.Git.CreateCommit(c, ownerName, repoName, commit, nil)
 	if err != nil {
-		logger.Fatalf("Failed to create commit: %v", err)
+		logger.Errorf("Failed to create commit: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Failed to create commit: %s", err.Error()),
+		})
 		return
 	}
 
-	// Update the reference to point to the new commit
-	ref.Object.SHA = newCommit.SHA
-	_, _, err = gh.Git.UpdateRef(c, commitForm.User.Owner, commitForm.User.Repo, ref, false)
+	commitRefPointsTo.SHA = newCommit.SHA
+	_, _, err = gh.Git.UpdateRef(c, ownerName, repoName, userRepoMainBranchReference, false)
 	if err != nil {
-		log.Fatalf("Failed to update ref: %v", err)
+		logger.Errorf("Failed to update ref: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Failed to update reference: %s", err.Error()),
+		})
 		return
 	}
 
