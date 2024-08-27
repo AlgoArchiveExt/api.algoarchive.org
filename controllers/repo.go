@@ -11,21 +11,20 @@ import (
 	"github.com/google/go-github/v64/github"
 
 	forms "main/forms/repo"
+	formutils "main/infra/utils/forms"
 )
 
 type RepositoryController struct{}
-
-var repoForm = new(forms.RepositoryForm)
 
 /*
 Commit a solution to a repository given the owner's name, repository, problem name, and code.
 https://github.com/AlgoArchiveExt/commit-testing
 */
 func (ctrl *RepositoryController) CommitProblemSolution(c *gin.Context) {
-	var commitForm = new(forms.CommitForm)
+	var commitForm = &forms.CommitForm{}
 
-	if err := c.ShouldBindBodyWithJSON(&commitForm); err != nil {
-		message := repoForm.Commit(err)
+	if err := c.ShouldBindBodyWithJSON(commitForm); err != nil {
+		message := formutils.GenerateJSONBindingErrorMessage(commitForm, err)
 
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("Failed to parse body: %s", message),
