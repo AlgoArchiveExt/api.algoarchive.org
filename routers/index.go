@@ -12,9 +12,11 @@ func RegisterRoutes(route *gin.Engine) {
 	route.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Route Not Found"})
 	})
-	route.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
+	apiGroup := route.Group("/api")
+
+	apiGroup.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 
 	// Add All route
-	routers.ExamplesRoutes(route)
-	routers.RepositoryRoutes(route)
+	routers.ExamplesRoutes(apiGroup)
+	routers.RepositoryRoutes(apiGroup)
 }
