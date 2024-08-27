@@ -18,6 +18,6 @@ func ServerConfig() string {
 	viper.SetDefault("SERVER_PORT", "8000")
 
 	appServer := fmt.Sprintf("%s:%s", viper.GetString("SERVER_HOST"), viper.GetString("SERVER_PORT"))
-	logger.Infof("Server Running at :", appServer)
+	logger.Infof("Server Running at %s", appServer)
 	return appServer
 }

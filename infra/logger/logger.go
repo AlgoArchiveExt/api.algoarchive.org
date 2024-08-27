@@ -78,6 +78,7 @@ func (f *formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	sb.WriteString(" ")
 	sb.WriteString(f.prefix)
 	sb.WriteString(entry.Message)
+	sb.WriteString("\n")
 
 	return sb.Bytes(), nil
 }

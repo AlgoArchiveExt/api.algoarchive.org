@@ -1,1 +1,8 @@
 .env
+
+/build
+
+/secrets
+
+# For air
+/tmp
