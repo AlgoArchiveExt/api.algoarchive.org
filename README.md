@@ -103,7 +103,7 @@ To maintain consistency and clarity in our project’s commit history, please fo
 
 - **Type**: Specifies the type of commit being made. Common types include:
   - `feat`: New feature
-  - `fix`: Bug fix or change (not as big in scope as a feature)
+  - `fix`: Bug fix
   - `docs`: Documentation changes
   - `style`: Code style updates (formatting, missing semicolons, etc.)
   - `refactor`: Code changes that neither fix a bug nor add a feature
