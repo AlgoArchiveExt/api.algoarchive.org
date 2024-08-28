@@ -155,6 +155,19 @@ func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
 		return
 	}
 
+	/*
+		As it stands, this function is very slow. It takes around 300 milliseconds for every solution to be parsed in the entire tree.
+		I'll optimize it soon, but I want to get the server deployed so the front end team can start using this.
+
+		There are a few optimizations I want to try:
+		* Letting treeForLatestMainCommit be recursive so it gets every tree and blob from the latest commit and then sorting through those.
+			* This may lead to performance gains because we would no longer have to get another tree from every problem, instead the github client
+			  handles it for us.
+		* Saving problem metadata in a database
+			* We may be able to set up a connection to a SQL database and use raw SQL to look for all the problems and its
+				metadata (including description, difficulty, topics, ect). This will let us save time getting every blob's raw byte data and information.
+				Bonus points if the database is on the server itself.
+	*/
 	solutions := []models.Solution{}
 	for _, entry := range treeForLatestMainCommit.Entries {
 		if entry.GetType() == githubutils.Tree {
