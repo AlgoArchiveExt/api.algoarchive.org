@@ -17,6 +17,5 @@ func RegisterRoutes(route *gin.Engine) {
 	apiGroup.GET("/health", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"live": "ok"}) })
 
 	// Add All route
-	routers.ExamplesRoutes(apiGroup)
 	routers.SolutionsRoutes(apiGroup)
 }
