@@ -3,9 +3,12 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"main/infra/logger"
 	githubutils "main/infra/utils/github"
+	"main/infra/utils/responses"
+	models "main/models/solutions"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v64/github"
@@ -70,7 +73,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 		},
 		// Notes
 		{
-			Path:    github.String(basePath + "/" + "NOTES.md"),
+			Path:    github.String(basePath + "/" + githubutils.NotesFilename + ".md"),
 			Type:    github.String("blob"),
 			Content: github.String(commitForm.Solution.Notes),
 			Mode:    github.String("100644"),
@@ -121,5 +124,59 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Successfully created commit at " + *newCommit.HTMLURL,
 		"response": newCommit,
+	})
+}
+
+func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
+	owner := c.Params.ByName("owner")
+	repo := c.Params.ByName("repo")
+
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
+		return
+	}
+
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	gh := githubutils.CreateNewGithubClientWithUserToken(token)
+
+	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	/*
+		As it stands, this function is very slow. It takes around 300 milliseconds for every solution to be parsed in the entire tree.
+		I'll optimize it soon, but I want to get the server deployed so the front end team can start using this.
+
+		There are a few optimizations I want to try:
+		* Letting treeForLatestMainCommit be recursive so it gets every tree and blob from the latest commit and then sorting through those.
+			* This may lead to performance gains because we would no longer have to get another tree from every problem, instead the github client
+			  handles it for us.
+		* Saving problem metadata in a database
+			* We may be able to set up a connection to a SQL database and use raw SQL to look for all the problems and its
+				metadata (including description, difficulty, topics, ect). This will let us save time getting every blob's raw byte data and information.
+				Bonus points if the database is on the server itself.
+	*/
+	solutions := []models.Solution{}
+	for _, entry := range treeForLatestMainCommit.Entries {
+		if entry.GetType() == githubutils.Tree {
+			var solution models.Solution = githubutils.ExtractSolutionFromTree(c, gh, owner, repo, entry)
+
+			solutions = append(solutions, solution)
+		}
+	}
+
+	responses.GiveOKResponse(c, fmt.Sprintf("Successfully obtained all solutions for repo %s!", owner+"/"+repo), &map[string]any{
+		"solutions": solutions,
 	})
 }
