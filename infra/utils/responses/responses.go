@@ -48,3 +48,24 @@ func GiveOKResponse(c *gin.Context, message string, extraFields *map[string]any)
 
 	c.JSON(http.StatusOK, response)
 }
+
+// Convenience shorthand for returning an Unauthorized response and message:
+/*
+Original Use:
+c.JSON(http.StatusUnauthorize, gin.H{
+	"message": "Message",
+})
+*/
+func GiveUnauthorizedResponse(c *gin.Context, errorMessage string, extraFields *map[string]any) {
+	response := gin.H{
+		"error": errorMessage,
+	}
+
+	if extraFields != nil {
+		for key, value := range *extraFields {
+			response[key] = value
+		}
+	}
+
+	c.JSON(http.StatusUnauthorized, response)
+}
