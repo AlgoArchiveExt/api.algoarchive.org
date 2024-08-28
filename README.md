@@ -11,14 +11,14 @@
 - [Development](#development)
 - [Commit Message Guidelines \& Conventions](#commit-message-guidelines--conventions)
   - [File Naming Conventions](#file-naming-conventions)
-- [API Endpoints](#api)
+- [API Endpoints](#api-endpoints)
 
-### Overview
+## Overview
 **AlgoArchive** is a Chrome extension that automatically grabs the LeetCode or HackerRank problem and its solution from the web page and pushes it to GitHub. The extension is designed to help users save and organize their submissions on GitHub, making it easier to track their progress and share their solutions with others.
 
 This repository contains the REST API that the extension and web app use to perform the user-related tasks, like committing to users' repositories and by feeding it solution data.
 
-### Project Structure
+## Project Structure
 ```
 api.algoarchive.org/
 │
@@ -53,7 +53,7 @@ api.algoarchive.org/
 └── main.go                         // Server entry point
 ```
 
-### Development
+## Development
 1. **Setup:** 
     - Clone the repository: 
       ```bash
@@ -86,7 +86,7 @@ api.algoarchive.org/
     - First, see if your terminal gives you any errors
     - Then, go to http://localhost:8080/api/health on your browser to see if your server is running correctly
 
-### Commit Message Guidelines & Conventions
+## Commit Message Guidelines & Conventions
 
 To maintain consistency and clarity in our project’s commit history, please follow these guidelines for commit messages:
 
@@ -141,15 +141,13 @@ For more detailed information on commit message conventions, please refer to [Co
 
 #### File Naming Conventions
 
-- Use `kebab-case` for everything (e.g., `sw-cache.ts`, `welcome-popup.html`).
-message.txt
+- Use `snake_case` for everything (e.g., `solutions.go`, `form-utils.go`).
 
-
-### API Endpoints
+## API Endpoints
 
 All of the endpoints are under the ```/api``` directory.
 
-**List**: 
+#### List: 
 - General:
   - ```GET``` Health ```/health``` Checks if the server is up and routing correctly. Just returns a "live": "ok" response if it's running properly.
 - Solutions:
