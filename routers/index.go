@@ -18,5 +18,5 @@ func RegisterRoutes(route *gin.Engine) {
 
 	// Add All route
 	routers.ExamplesRoutes(apiGroup)
-	routers.RepositoryRoutes(apiGroup)
+	routers.SolutionsRoutes(apiGroup)
 }

@@ -10,17 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v64/github"
 
-	forms "main/forms/repo"
+	forms "main/forms/solutions"
 	formutils "main/infra/utils/forms"
 )
 
-type RepositoryController struct{}
+type SolutionsController struct{}
 
 /*
 Commit a solution to a repository given the owner's name, repository, problem name, and code.
 https://github.com/AlgoArchiveExt/commit-testing
 */
-func (ctrl *RepositoryController) CommitProblemSolution(c *gin.Context) {
+func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	var commitForm = &forms.CommitForm{}
 
 	if err := c.ShouldBindBodyWithJSON(commitForm); err != nil {

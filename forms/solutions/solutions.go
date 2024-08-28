@@ -1,7 +1,7 @@
 package forms
 
 import (
-	models "main/models/repo"
+	models "main/models/solutions"
 )
 
 type CommitForm struct {
