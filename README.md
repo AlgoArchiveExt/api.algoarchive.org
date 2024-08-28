@@ -31,7 +31,9 @@ api.algoarchive.org/
 │   └── solutions.go                // Forms for the /solutions route
 │
 ├── infra/                          // Infrastructure-related utilities
-│   ├── logger                      // Logging class for logging messages to the server. Wrapper around Logrus
+│   ├── logger                      // Logging class for logging messages to the server.
+│                                   // Wrapper around Logrus utility
+│
 │   └── utils/                      // Utility methods for all around the application
 │       ├── forms                   // Utils for form binding. Has the method to generate missing properties
 │       ├── github                  // Shorthands for interactions with GitHub
@@ -67,7 +69,8 @@ api.algoarchive.org/
 2. **Run the development server:**
     - Using Air:
       ```bash
-      # The air utility lets us to hot-reload the server on filesave for faster and easier development.
+      # The air utility lets us to hot-reload the server
+      # on filesave for faster and easier development.
       air
       ```
     - Or if you're traditional, use Make:
@@ -78,13 +81,21 @@ api.algoarchive.org/
       # Use after your first build
       make rebuild
 
-      # Feel free to change the rebuild command to use 'clean' or 'clean-windows', just don't push it please.
+      # Feel free to change the rebuild command to use 'clean'
+      # or 'clean-windows', just don't push it please.
       # Any pull requests with it modified off Linux clean will be asked to fix it before merging.
       rebuild: clean-windows build run
       ```
 3. **Test the server:**
-    - First, see if your terminal gives you any errors
-    - Then, go to http://localhost:8080/api/health on your browser to see if your server is running correctly
+    - First, see if your terminal gives you any errors.
+    - Then, go to http://localhost:8080/api/health on your browser to see if your server is running correctly.
+4. **Create or find an issue to solve:**
+    - Feel free to look through the existing issues to find topics and discussions to contribute to.
+    - When you're ready, create a branch and start working on it!
+    - If there's something you found that doesn't work properly and there's no existing issues on it, feel free to start a discussion!
+5. **Make a pull request for review:**
+    - When you're done with your changes, start a pull request and add some people to review it. Feel free to add lausan3 or anyone who was in your discussion about your issue!
+    - After all the proper checks and code reviews are completed and everything looks good to merge, squash and merge your commits following the commit guidelines below.
 
 ## Commit Message Guidelines & Conventions
 
@@ -141,7 +152,7 @@ For more detailed information on commit message conventions, please refer to [Co
 
 #### File Naming Conventions
 
-- Use `snake_case` for everything (e.g., `solutions.go`, `form-utils.go`).
+- Use `snake_case` for everything (e.g., `solutions.go`, `form_utils.go`).
 
 ## API Endpoints
 
