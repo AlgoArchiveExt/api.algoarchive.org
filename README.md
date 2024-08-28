@@ -87,8 +87,15 @@ api.algoarchive.org/
       rebuild: clean-windows build run
       ```
 3. **Test the server:**
-    - First, see if your terminal gives you any errors
-    - Then, go to http://localhost:8080/api/health on your browser to see if your server is running correctly
+    - First, see if your terminal gives you any errors.
+    - Then, go to http://localhost:8080/api/health on your browser to see if your server is running correctly.
+4. **Create or find an issue to solve:**
+    - Feel free to look through the existing issues to find topics and discussions to contribute to.
+    - When you're ready, create a branch and start working on it!
+    - If there's something you found that doesn't work properly and there's no existing issues on it, feel free to start a discussion!
+5. **Make a pull request for review:**
+    - When you're done with your changes, start a pull request and add some people to review it. Feel free to add lausan3 or anyone who was in your discussion about your issue!
+    - After all the proper checks and code reviews are completed and everything looks good to merge, squash and merge your commits following the commit guidelines below.
 
 ## Commit Message Guidelines & Conventions
 
