@@ -3,9 +3,12 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"main/infra/logger"
 	githubutils "main/infra/utils/github"
+	"main/infra/utils/responses"
+	models "main/models/solutions"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v64/github"
@@ -70,7 +73,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 		},
 		// Notes
 		{
-			Path:    github.String(basePath + "/" + "NOTES.md"),
+			Path:    github.String(basePath + "/" + githubutils.NotesFilename + ".md"),
 			Type:    github.String("blob"),
 			Content: github.String(commitForm.Solution.Notes),
 			Mode:    github.String("100644"),
@@ -121,5 +124,47 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Successfully created commit at " + *newCommit.HTMLURL,
 		"response": newCommit,
+	})
+}
+
+// https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28#get-a-tree
+func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
+	owner := c.Params.ByName("owner")
+	repo := c.Params.ByName("repo")
+
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
+		return
+	}
+
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	gh := githubutils.CreateNewGithubClientWithUserToken(token)
+
+	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	solutions := []models.Solution{}
+	for _, entry := range treeForLatestMainCommit.Entries {
+		if entry.GetType() == githubutils.Tree {
+			var solution models.Solution = githubutils.ExtractSolutionFromTree(c, gh, owner, repo, entry)
+
+			solutions = append(solutions, solution)
+		}
+	}
+
+	responses.GiveOKResponse(c, fmt.Sprintf("Successfully obtained all solutions for repo %s!", owner+"/"+repo), &map[string]any{
+		"solutions": solutions,
 	})
 }
