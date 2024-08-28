@@ -127,7 +127,6 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	})
 }
 
-// https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28#get-a-tree
 func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
 	owner := c.Params.ByName("owner")
 	repo := c.Params.ByName("repo")
