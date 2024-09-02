@@ -33,3 +33,21 @@ jobs:
           context: .  # Point to the 'server' directory where your Dockerfile is located
           push: true
           tags: ${{ secrets.DOCKERHUB_TAGS }}
+          
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.0
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          sudo su
+          docker system prune -f
+          docker pull ${{ secrets.DOCKERHUB_TAGS }}
+          sudo docker rm -f $(docker ps -aq)
+          docker run -d -p 80:3000 --env-file ./.env ${{ secrets.DOCKERHUB_TAGS }}
