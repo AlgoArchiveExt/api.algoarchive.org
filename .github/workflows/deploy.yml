@@ -36,6 +36,7 @@ jobs:
           
   deploy:
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
     - name: Deploy to EC2
@@ -46,8 +47,7 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         port: 22
         script: |
-          sudo su
-          docker system prune -f
-          docker pull ${{ secrets.DOCKERHUB_TAGS }}
+          sudo docker system prune -f
+          sudo docker pull ${{ secrets.DOCKERHUB_TAGS }}
           sudo docker rm -f $(sudo docker ps -a -q)
-          docker run -d -p 80:3000 ${{ secrets.DOCKERHUB_TAGS }}
+          sudo docker run -d -p 80:3000 ${{ secrets.DOCKERHUB_TAGS }}
