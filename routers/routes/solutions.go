@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SolutionsRoutes(route *gin.RouterGroup) {
+func SolutionsRoutes(route *gin.Engine) {
 	var ctrl controllers.SolutionsController
 
 	v1 := route.Group("/v1/solutions")
