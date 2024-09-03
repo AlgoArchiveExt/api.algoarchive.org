@@ -49,5 +49,5 @@ jobs:
           sudo su
           docker system prune -f
           docker pull ${{ secrets.DOCKERHUB_TAGS }}
-          sudo docker rm -f $(docker ps -aq)
-          docker run -d -p 80:3000 --env-file ./.env ${{ secrets.DOCKERHUB_TAGS }}
+          sudo docker rm -f $(sudo docker ps -a -q)
+          docker run -d -p 80:3000 ${{ secrets.DOCKERHUB_TAGS }}
