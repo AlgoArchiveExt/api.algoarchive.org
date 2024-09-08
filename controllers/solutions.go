@@ -228,3 +228,56 @@ func (ctrl *SolutionsController) GetSolutionsCount(c *gin.Context) {
 		"solutions_count": solutionsCount,
 	})
 }
+
+func (ctrl *SolutionsController) GetSolutionsCountByDifficulty(c *gin.Context) {
+	owner := c.Params.ByName("owner")
+	repo := c.Params.ByName("repo")
+
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
+		return
+	}
+
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	gh := githubutils.CreateNewGithubClientWithUserToken(token)
+
+	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
+	if err != nil {
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
+		return
+	}
+
+	difficulties := map[string]int{
+		"easy":   0,
+		"medium": 0,
+		"hard":   0,
+	}
+
+	for _, entry := range treeForLatestMainCommit.Entries {
+		if entry.GetType() == githubutils.Tree {
+			solution := githubutils.ExtractSolutionFromTree(c, gh, owner, repo, entry)
+
+			switch solution.Difficulty {
+			case "easy":
+				difficulties["easy"]++
+			case "medium":
+				difficulties["medium"]++
+			case "hard":
+				difficulties["hard"]++
+			}
+		}
+	}
+
+	responses.GiveOKResponse(c, fmt.Sprintf("Successfully obtained all solutions for repo %s!", owner+"/"+repo), &map[string]any{
+		"difficulties": difficulties,
+	})
+}

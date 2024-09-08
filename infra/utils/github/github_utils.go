@@ -3,6 +3,7 @@ package githubutils
 import (
 	"fmt"
 	models "main/models/solutions"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,13 @@ func ExtractSolutionFromTree(c *gin.Context, gh *github.Client, owner string, re
 			// Description file
 			if filename == *problemName || filename == "README" {
 				solution.Description = content
+
+				difficultyRegex := regexp.MustCompile(`(?s)<h3>(.*?)</h3>`)
+				matches := difficultyRegex.FindStringSubmatch(content)
+				if len(matches) > 1 {
+					solution.Difficulty = strings.ToLower(matches[1])
+				}
+
 				// Notes file
 			} else if filename == NotesFilename {
 				solution.Notes = content
