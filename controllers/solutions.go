@@ -63,6 +63,15 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 		return
 	}
 
+	if commitForm.Solution.Difficulty != "" {
+		// add difficulty to the top of the description <h3>difficulty</h3><hr>
+		commitForm.Solution.Description = fmt.Sprintf("<h3>%s</h3><hr>%s", commitForm.Solution.Difficulty, commitForm.Solution.Description)
+	}
+	if commitForm.Solution.ProblemLink != "" && commitForm.Solution.ProblemID != "" {
+		// add link to the problem at the bottom of the description <a href="problem_link">Problem Link</a>
+		commitForm.Solution.Description = fmt.Sprintf("<h2><a href=\"%s\">%s. %s</a></h2>%s", commitForm.Solution.ProblemLink, commitForm.Solution.ProblemID, commitForm.Solution.ProblemName, commitForm.Solution.Description)
+	}
+
 	entries := []*github.TreeEntry{
 		// Description
 		{
