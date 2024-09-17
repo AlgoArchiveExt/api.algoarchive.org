@@ -65,3 +65,36 @@ const (
 	Tree          string = "tree"
 	NotesFilename string = "NOTES"
 )
+
+// Returns a language string to its proper file extension (for example, "python" -> "py").
+func MapLanguageStringToFileExtension(language string) (extension string, ok bool) {
+	lowercaseString := strings.ToLower(language)
+
+	switch lowercaseString {
+	// Case for language strings that match their file extension
+	case "cpp", "scala", "java", "c", "swift", "dart", "go", "php":
+		return language, true
+	case "python", "python3":
+		return "py", true
+	case "csharp":
+		return "cs", true
+	case "javascript":
+		return "js", true
+	case "typescript":
+		return "ts", true
+	case "kotlin":
+		return "kt", true
+	case "ruby":
+		return "rb", true
+	case "rust":
+		return "rs", true
+	case "racket":
+		return "rkt", true
+	case "erlang":
+		return "erl", true
+	case "elixir":
+		return "ex", true
+	}
+
+	return "", false
+}

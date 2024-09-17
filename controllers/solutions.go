@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"main/infra/logger"
@@ -29,9 +28,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	if err := c.ShouldBindBodyWithJSON(commitForm); err != nil {
 		message := formutils.GenerateJSONBindingErrorMessage(commitForm, err)
 
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to parse body: %s", message),
-		})
+		responses.GiveErrorResponse(c, "Failed to parse body", message, nil)
 
 		return
 	}
@@ -44,9 +41,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	userRepoMainBranchReference, _, err := gh.Git.GetRef(c, ownerName, repoName, "heads/main")
 	if err != nil {
 		logger.Errorf("Failed to get branch ref: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to get reference for repo's main branch: %s", err.Error()),
-		})
+		responses.GiveErrorResponse(c, "Failed to get reference for repo's main branch", err.Error(), nil)
 		return
 	}
 
@@ -57,9 +52,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	latestCommit, _, err := gh.Repositories.GetCommit(c, ownerName, repoName, *commitRefPointsTo.SHA, nil)
 	if err != nil {
 		logger.Errorf("Failed to get parent commit: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to get parent commit for %s: %s", *userRepoMainBranchReference.Ref, err.Error()),
-		})
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get parent commit for %s", *userRepoMainBranchReference.Ref), err.Error(), nil)
 		return
 	}
 
@@ -70,6 +63,13 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	if commitForm.Solution.ProblemLink != "" && commitForm.Solution.ProblemID != "" {
 		// add link to the problem at the bottom of the description <a href="problem_link">Problem Link</a>
 		commitForm.Solution.Description = fmt.Sprintf("<h2><a href=\"%s\">%s. %s</a></h2>%s", commitForm.Solution.ProblemLink, commitForm.Solution.ProblemID, commitForm.Solution.ProblemName, commitForm.Solution.Description)
+	}
+
+	properFileExtension, ok := githubutils.MapLanguageStringToFileExtension(commitForm.Solution.Language)
+
+	if !ok {
+		responses.GiveErrorResponse(c, "Failed to parse language", "Could not parse language correctly, it might not be supported by us yet.", nil)
+		return
 	}
 
 	entries := []*github.TreeEntry{
@@ -89,7 +89,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 		},
 		// Solution Code
 		{
-			Path:    github.String(basePath + "/" + commitForm.Solution.ProblemName + "." + commitForm.Solution.Language),
+			Path:    github.String(basePath + "/" + commitForm.Solution.ProblemName + "." + properFileExtension),
 			Type:    github.String("blob"),
 			Content: github.String(commitForm.Solution.Code),
 			Mode:    github.String("100644"),
@@ -99,9 +99,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	commitTree, _, err := gh.Git.CreateTree(c, ownerName, repoName, *latestCommit.Commit.Tree.SHA, entries)
 	if err != nil {
 		logger.Errorf("Failed to create tree: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to create tree from commit %s: %s", latestCommit.Commit, err.Error()),
-		})
+		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to create tree from commit %s", *latestCommit.Commit.HTMLURL), err.Error(), nil)
 		return
 	}
 
@@ -114,9 +112,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	newCommit, _, err := gh.Git.CreateCommit(c, ownerName, repoName, commit, nil)
 	if err != nil {
 		logger.Errorf("Failed to create commit: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to create commit: %s", err.Error()),
-		})
+		responses.GiveErrorResponse(c, "Failed to create commit", err.Error(), nil)
 		return
 	}
 
@@ -124,14 +120,11 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	_, _, err = gh.Git.UpdateRef(c, ownerName, repoName, userRepoMainBranchReference, false)
 	if err != nil {
 		logger.Errorf("Failed to update ref: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Failed to update reference: %s", err.Error()),
-		})
+		responses.GiveErrorResponse(c, "Failed to update reference", err.Error(), nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "Successfully created commit at " + *newCommit.HTMLURL,
+	responses.GiveOKResponse(c, "Successfully created commit at "+*newCommit.HTMLURL, &map[string]any{
 		"response": newCommit,
 	})
 }
