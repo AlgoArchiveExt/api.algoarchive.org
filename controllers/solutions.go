@@ -28,6 +28,8 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	if err := c.ShouldBindBodyWithJSON(commitForm); err != nil {
 		message := formutils.GenerateJSONBindingErrorMessage(commitForm, err)
 
+		logger.Errorf("Failed to bind JSON: %v", message)
+
 		responses.GiveErrorResponse(c, "Failed to parse body", message, nil)
 
 		return
@@ -136,6 +138,7 @@ func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		logger.Errorf("Authorization header missing or invalid")
 		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
 		return
 	}
@@ -146,12 +149,14 @@ func (ctrl *SolutionsController) GetSolutions(c *gin.Context) {
 
 	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
 	if err != nil {
+		logger.Errorf("Failed to get Git Reference for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
 
 	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
 	if err != nil {
+		logger.Errorf("Failed to get Git Tree for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
@@ -190,6 +195,7 @@ func (ctrl *SolutionsController) GetSolutionsCount(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		logger.Errorf("Authorization header missing or invalid")
 		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
 		return
 	}
@@ -200,12 +206,14 @@ func (ctrl *SolutionsController) GetSolutionsCount(c *gin.Context) {
 
 	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
 	if err != nil {
+		logger.Errorf("Failed to get Git Reference for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
 
 	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
 	if err != nil {
+		logger.Errorf("Failed to get Git Tree for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
@@ -229,6 +237,7 @@ func (ctrl *SolutionsController) GetSolutionsCountByDifficulty(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		logger.Errorf("Authorization header missing or invalid")
 		responses.GiveUnauthorizedResponse(c, "Authorization header missing or invalid", nil)
 		return
 	}
@@ -239,12 +248,14 @@ func (ctrl *SolutionsController) GetSolutionsCountByDifficulty(c *gin.Context) {
 
 	mainBranchRef, _, err := gh.Git.GetRef(c, owner, repo, "heads/main")
 	if err != nil {
+		logger.Errorf("Failed to get Git Reference for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Reference for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
 
 	treeForLatestMainCommit, _, err := gh.Git.GetTree(c, owner, repo, *mainBranchRef.Object.SHA, false)
 	if err != nil {
+		logger.Errorf("Failed to get Git Tree for repo %s owned by user %s: %v", repo, owner, err)
 		responses.GiveErrorResponse(c, fmt.Sprintf("Failed to get Git Tree for repo %s owned by user %s", repo, owner), err.Error(), nil)
 		return
 	}
