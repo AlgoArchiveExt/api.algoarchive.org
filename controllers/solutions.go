@@ -70,6 +70,7 @@ func (ctrl *SolutionsController) CommitProblemSolution(c *gin.Context) {
 	properFileExtension, ok := githubutils.MapLanguageStringToFileExtension(commitForm.Solution.Language)
 
 	if !ok {
+		logger.Errorf("Failed to parse language: %s", commitForm.Solution.Language)
 		responses.GiveErrorResponse(c, "Failed to parse language", "Could not parse language correctly, it might not be supported by us yet.", nil)
 		return
 	}
