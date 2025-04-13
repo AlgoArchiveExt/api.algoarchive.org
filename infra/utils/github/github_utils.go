@@ -74,7 +74,7 @@ func MapLanguageStringToFileExtension(language string) (extension string, ok boo
 	// Case for language strings that match their file extension
 	case "cpp", "scala", "java", "c", "swift", "dart", "go", "php":
 		return language, true
-	case "python", "python3":
+	case "python", "python3", "pythondata":
 		return "py", true
 	case "csharp":
 		return "cs", true
@@ -94,6 +94,8 @@ func MapLanguageStringToFileExtension(language string) (extension string, ok boo
 		return "erl", true
 	case "elixir":
 		return "ex", true
+	case "mysql", "oraclesql", "postgresql", "mssql":
+		return "sql", true
 	}
 
 	return "", false
