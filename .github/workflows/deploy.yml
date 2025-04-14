@@ -50,7 +50,7 @@ jobs:
           rm .env
           echo "${{ secrets.env }}" >> .env
           sudo docker system prune -f
+          sudo docker rm -f $(sudo docker ps -a -q)
           sudo docker image rm ${{ secrets.DOCKERHUB_TAGS }}
           sudo docker pull ${{ secrets.DOCKERHUB_TAGS }}
-          sudo docker rm -f $(sudo docker ps -a -q)
           sudo docker run -d -p 81:3000 --restart=always ${{ secrets.DOCKERHUB_TAGS }}
