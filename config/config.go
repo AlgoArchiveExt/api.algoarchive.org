@@ -8,7 +8,6 @@ import (
 
 type Configuration struct {
 	Server ServerConfiguration
-	// Database DatabaseConfiguration
 }
 
 // SetupConfig configuration
