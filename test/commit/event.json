@@ -1,0 +1,5 @@
+{
+  "httpMethod": "GET",
+  "path": "/",
+  "body": "{\"user\":{\"owner\":\"AlgoArchiveExt\",\"repoName\":\"commit-testing\"},\"solution\":{\"problemName\":\"Two Sum\",\"code\":\"function twoSum(nums, target) { /* ... */ }\",\"description\":\"Finds two numbers that add up to the target.\",\"language\":\"javascript\",\"problemLink\":\"https://leetcode.com/problems/two-sum/\",\"problemId\":\"1\",\"difficulty\":\"Easy\",\"notes\":\"Uses a hash map for O(n) time complexity.\"},\"accessToken\":\"ghu_lolyouthoughtitwasreal\"}"
+}
