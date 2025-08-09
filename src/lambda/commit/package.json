@@ -1,0 +1,13 @@
+{
+  "name": "commit",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "zod": "^4.0.17"
+  }
+}
