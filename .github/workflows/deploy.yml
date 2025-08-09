@@ -19,12 +19,6 @@ jobs:
         run: |
             npm install
             npm run build-lambdas
-          
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
       - name: Download cdk
         run: |
           npm install -g aws-cdk
