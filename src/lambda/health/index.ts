@@ -6,7 +6,6 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
     console.log('Event:', JSON.stringify(event, null, 2));
     console.log('Context:', JSON.stringify(context, null, 2));
 
-    // Your logic here
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Hello from Lambda!' }),

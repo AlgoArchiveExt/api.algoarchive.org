@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import * as api from '../lib/stacks/api/api-stack';
+import * as api from '../src/lib/stacks/api/api-stack';
 
 
 test('SQS Queue Created', () => {
