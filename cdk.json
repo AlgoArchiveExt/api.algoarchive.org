@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/algoarchive.ts",
+  "app": "npx ts-node --prefer-ts-exts src/bin/algoarchive.ts",
   "watch": {
     "include": [
       "**"
@@ -13,7 +13,9 @@
       "package*.json",
       "yarn.lock",
       "node_modules",
-      "test"
+      "test",
+      "dist",
+      "scripts"
     ]
   },
   "context": {
