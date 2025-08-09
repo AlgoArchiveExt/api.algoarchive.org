@@ -1,0 +1,13 @@
+{
+  "httpMethod": "GET",
+  "path": "/",
+  "body": {
+    "commit": {
+      "message": "refactor: move project to src folder and refactor lambdas folder to lambda",
+      "author": {
+        "name": "Anthony",
+        "email": ""
+      }
+    }
+  }
+}
