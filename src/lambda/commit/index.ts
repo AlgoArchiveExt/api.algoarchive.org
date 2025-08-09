@@ -20,11 +20,15 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
 
   if (!success) {
     console.error('Validation error:', data);
+
+    const treeError = z.treeifyError(error);
+
     return {
       statusCode: 400,
       body: JSON.stringify({ 
-        message: `Invalid input data: ${error.message}`, 
-        errors: z.treeifyError(error).errors
+        message: `Invalid input data: ${error.message}`,
+        type: error.type,
+        errors: treeError.errors
       })
     };
   }
@@ -32,8 +36,6 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
   const { user, solution, accessToken } = data;
 
   try {
-
-
     const octokit = new Octokit({auth: accessToken});
 
 
