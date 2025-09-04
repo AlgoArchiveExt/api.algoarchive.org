@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { healthFunction } from './functions/health';
 import { commitFunction } from './functions/commit';
 import { aws_apigatewayv2, aws_apigatewayv2_integrations, Stack, StackProps } from 'aws-cdk-lib';
-import { CfnStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CfnStage, CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 
 export class APIStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -13,6 +13,15 @@ export class APIStack extends Stack {
       apiName: 'AlgoArchiveAPI',
       description: 'API for AlgoArchive',
       createDefaultStage: false,
+      corsPreflight: {
+        allowOrigins: ["*"],
+        allowMethods: [
+          CorsHttpMethod.GET,
+          CorsHttpMethod.POST,
+          CorsHttpMethod.OPTIONS
+        ],
+        allowHeaders: ["Content-Type", "Authorization"]
+  }
     });
     
     const healthFunc = healthFunction(this);
@@ -35,6 +44,7 @@ export class APIStack extends Stack {
 
     });
 
+    // L2 Stage construct can't be directly added onto HttpApi, so we use the L1 CfnStage instead.
     new CfnStage(this, "DefaultStage", {
       apiId: api.apiId,
       stageName: "v1",
