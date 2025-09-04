@@ -10,8 +10,8 @@ import { mapProblemLanguageToExtension } from '../../utils/mapProblemLanguage.js
 const commitFormSchema = z.object({
     user: UserSchema,
     solution: SolutionSchema,
-    accessToken: z.string()
-})
+    user_access_token: z.string()
+});
 
 export const handler = async function (event: APIGatewayProxyEvent): Promise<any> {
   console.log('Event:', JSON.stringify(event, null, 2));
@@ -33,52 +33,58 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
     };
   }
 
-  const { user, solution, accessToken } = data;
+  const { user, solution, user_access_token } = data;
 
   try {
-    const octokit = new Octokit({auth: accessToken});
+    const octokit = new Octokit({auth: user_access_token});
 
 
     const mainBranchRef = await octokit.git.getRef({
       owner: user.owner,
-      repo: user.repoName,
+      repo: user.repo_name,
       ref: 'heads/main',
     });
+
+    console.log('get ref passed');
 
     const commitSha = mainBranchRef.data.object.sha;
 
     const latestCommit = await octokit.git.getCommit({
       owner: user.owner,
-      repo: user.repoName,
+      repo: user.repo_name,
       commit_sha: commitSha,
     });
 
+    console.log('get commit passed');
+
     // Commit tree setup
-    const basePath = solution.problemId ? solution.problemName : `${solution.problemId}-${solution.problemName}`;
+    const basePath = solution.problem_id ? solution.problem_name : `${solution.problem_id}-${solution.problem_name}`;
 
     const languageExtension = mapProblemLanguageToExtension(solution.language);
 
-    let description: string = ``;
+    let description: string = "";
     
-    if (solution.problemLink) {
-      description += `<h3><a href=${solution.problemLink}>${solution.problemName}</a></h3>\n`;
+    if (solution.problem_link) {
+      description += `<h3><a href=${solution.problem_link}>${solution.problem_name}</a></h3>\n`;
     }
 
     if (solution.description) {
       description += `<p>${solution.description}</p>\n`;
     }
 
-    description += solution.description;
+    if (description === "") {
+      description += solution.description;
+    }
 
     const tree = await octokit.git.createTree({
       owner: user.owner,
-      repo: user.repoName,
+      repo: user.repo_name,
       tree: [
         {
-          path: `${basePath}/${solution.problemName}.${languageExtension}`,
+          path: `${basePath}/${solution.problem_name}.${languageExtension}`,
           type: 'blob',
           content: solution.code,
-          mode: '100755'
+          mode: '100755',
         },
         {
           path: `${basePath}/README.md`,
@@ -89,25 +95,29 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
         {
           path: `${basePath}/NOTES.md`,
           type: 'blob',
-          content: solution.notes,
+          content: solution.notes ?? "",
           mode: '100644'
         }
       ],
       base_tree: latestCommit.data.tree.sha,
     });
 
+    console.log('create tree passed');
+
     const newCommitResponse = await octokit.git.createCommit({
       owner: user.owner,
-      repo: user.repoName,
-      message: `ADD ${solution.problemName}`,
+      repo: user.repo_name,
+      message: `ADD ${solution.problem_name}`,
       tree: tree.data.sha,
       parents: [latestCommit.data.sha],
     });
 
+    console.log('create commit passed');
+
 
     await octokit.git.updateRef({
       owner: user.owner,
-      repo: user.repoName,
+      repo: user.repo_name,
       ref: 'heads/main',
       sha: newCommitResponse.data.sha,
     });
@@ -115,8 +125,14 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
 
     return {
       statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Headers': '*',
+      },
       body: JSON.stringify({
-        message: `Commit processed successfully for problem: ${solution.problemName}`,
+        message: `Commit processed successfully for problem: ${solution.problem_name}`,
         user,
         solution,
       }),
@@ -127,7 +143,7 @@ export const handler = async function (event: APIGatewayProxyEvent): Promise<any
     return {
       statusCode: 500,
       body: JSON.stringify({ 
-        message: `Failed to commit solution for problem ${solution.problemName}. Reason: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        message: `Failed to commit solution for problem ${solution.problem_name}. Reason: ${error instanceof Error ? error.message : 'Unknown error'}`, 
       })
     };
   }

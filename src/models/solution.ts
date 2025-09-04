@@ -1,12 +1,12 @@
 import z from "zod";
 
 export const SolutionSchema = z.object({
-  problemName: z.string(),
+  problem_name: z.string(),
   code: z.string(),
   description: z.string(),
   language: z.string(), 
-  problemLink: z.string().optional(),
-  problemId: z.string().optional(),
+  problem_link: z.string().optional(),
+  problem_id: z.string().optional(),
   difficulty: z.string().optional(),
   notes: z.string().optional(),
 });
